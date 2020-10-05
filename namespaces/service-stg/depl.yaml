@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: "service-prod"
+  name: "multitool"
+  annotations:
+    configmanagement.gke.io/cluster-selector: selector-cluster-staging
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: "svc1"
+  template:
+    metadata:
+      labels:
+        app: "svc1"
+    spec:
+      containers:
+      - image: przemekmalak/multitool
+        name: multitoolserver
+        env:
+        - name: RETURN_TEXT
+          value: "Staging version"
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: tool
+  name: multitool
+  annotations:
+    configmanagement.gke.io/cluster-selector: selector-cluster-staging
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: svc1
+  type: LoadBalancer
